@@ -32,7 +32,7 @@ then
     log_aux "Configuring"
     LDFLAGS='-Wl,--as-needed -Wl,-z,now' \
       CFLAGS='-fPIC -DLINUX_OOM_ADJ=0' \
-      ./configure --prefix=$install_dir \
+      ./configure --prefix=$build_dir/.embedded-pg/install \
       --enable-integer-datetimes \
       --enable-thread-safety \
       --enable-debug \
