@@ -66,6 +66,6 @@ cat > $build_dir/.profile.d/embedded-pg.sh <<EOF
 #!/bin/bash
 
 /app/.embedded-pg/install/bin/initdb -D /app/.embedded-pg/data
-/app/.embedded-pg/install/bin/pg_ctl start -l /tmp/postgres.log
+/app/.embedded-pg/install/bin/pg_ctl start -l /tmp/postgres.log -D /app/.embedded-pg/data
 EOF
 chmod +x $build_dir/.profile.d/embedded-pg.sh
