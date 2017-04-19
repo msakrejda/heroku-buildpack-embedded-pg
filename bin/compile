@@ -1,0 +1,71 @@
+#!/bin/bash
+
+set -eux
+
+build_dir=${1:-}
+cache_dir=${2:-}
+env_dir=${3:-}
+
+version=${PG_VERSION:-9.6.2}
+
+log() {
+    echo "-----> $1"
+}
+
+log_aux() {
+    echo "       $1"
+}
+
+if [ ! -d $cache_dir/embedded-pg/$version ]
+then
+    rm -rf $cache_dir/embedded-pg
+    mkdir -p $cache_dir/embedded-pg
+    cd $cache_dir/embedded-pg
+
+    log "Downloading Postgres ${version}"
+    wget https://ftp.postgresql.org/pub/source/v${version}/postgresql-${version}.tar.bz2
+    log_aux "Extracting"
+    tar xjvf postgresql-${version}.tar.bz2
+    pushd postgresql-${version}
+    mkdir -p $build_dir/.embedded-pg/install /app/.embedded-pg
+    ln -s $build_dir/.embedded-pg/install /app/.embedded-pg/install
+    log_aux "Configuring"
+    LDFLAGS='-Wl,--as-needed -Wl,-z,now' \
+      CFLAGS='-fPIC -DLINUX_OOM_ADJ=0' \
+      ./configure --prefix=$install_dir \
+      --enable-integer-datetimes \
+      --enable-thread-safety \
+      --enable-debug \
+      --disable-rpath \
+      --with-gnu-ld \
+      --with-pgport=5432 \
+      --with-system-tzdata=/usr/share/zoneinfo \
+      --without-tcl \
+      --without-perl \
+      --without-python \
+      --with-krb5 \
+      --with-gssapi \
+      --with-libxml \
+      --with-libxslt \
+      --with-openssl
+    log_aux "Building"
+    make
+    log_aux "Installing"
+    make install
+    cp -r $build_dir/.embedded-pg/install $cache_dir/embedded-pg/$version
+    popd
+else
+    log "Setting up postgres"
+    mkdir -p $build_dir/.embedded-pg/install
+    cp -r $cache_dir/embedded-pg/$version/* $build_dir/.embedded-pg/install
+fi
+
+log "Setting up environment"
+mkdir -p $build_dir/.profile.d
+cat > $build_dir/.profile.d/embedded-pg.sh <<EOF
+#!/bin/bash
+
+/app/.embedded-pg/install/bin/initdb -D /app/.embedded-pg/data
+/app/.embedded-pg/install/bin/pg_ctl start -l /tmp/postgres.log
+EOF
+chmod +x $build_dir/.profile.d/embedded-pg.sh

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "embedded-pg"
+
+exit 0
