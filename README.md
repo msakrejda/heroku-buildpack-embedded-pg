@@ -1,18 +1,12 @@
 # Heroku Embedded Postgres Buildpack
 
 This buildpack will configure a Postgres server to start on dyno boot
-inside the dyno. It runs on the default Postgres port 5432 on
-localhost.
-
-Note that for UNIX socket connections, the `psql` binary in dynos
-expects a unix socket file at `/run/postgresql`, and the Postgres from
-this buildpack uses `/tmp`. Only the `postgres` database is created by
-default.
-
+inside the dyno. It injects a `DATABASE_URL` environment variable into
+your app that behaves like a config var.
 To connect, run
 
 ```
-psql --host /tmp postgres
+psql $DATABASE_URL
 ```
 
 N.B.: the data written to this Postgres instance only exists within
